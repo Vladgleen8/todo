@@ -12,7 +12,7 @@ public class TaskService {
 
     }
 
-    public void removeTask(Task task) {
+    public void removeTask(String title) {
 
     }
 
@@ -20,7 +20,7 @@ public class TaskService {
 
     }
 
-    public void editTask(Task task) {
+    public void editTask(String title) {
 
     }
 
