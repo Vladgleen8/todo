@@ -48,20 +48,45 @@ public class ConsoleUI {
                     System.out.println("Введите название задачи: ");
                     String titleToDelete = scanner.nextLine();
                     taskService.removeTask(titleToDelete);
+                    break;
                 case "edit":
                     System.out.println("Введите название задачи: ");
                     String titleToEdit = scanner.nextLine();
-                    taskService.editTask(titleToEdit);
+                    System.out.println("Какое поле нужно изменить? Заголовок, Описание, Статус");
+                    String fieldToEdit = scanner.nextLine();
+                    if (fieldToEdit.equals("Статус")) {
+                        System.out.println("Введите один из статусов: В работе, Сделано");
+                    } else {
+                        System.out.println("Введите новые данные для поля");
+                    }
+                    String fieldData = scanner.nextLine();
+                    taskService.editTask(titleToEdit, fieldToEdit, fieldData);
+                    break;
                 case "list":
                     taskService.showAllTasks();
+                    break;
+                case "sort":
+                    System.out.println("Введите название поля для сортировки: ");
+                    String sortByField = scanner.nextLine();
+                    System.out.println("Сортировать по возрастанию (ASC) или по убыванию (DESC): ");
+                    String sortType = scanner.nextLine();
+                    taskService.sortTasks(sortByField, sortType);
+                    break;
                 case "filter":
-                    System.out.println("Введите название посля для сортировки: ");
+                    System.out.println("Фильтровать по статусу задачи: сделать, в работе (progress), сделано (completed) ");
+                    String filterType = scanner.nextLine();
+                    taskService.filterTasks(filterType);
+                    break;
+                case "exit":
+                    System.out.println("Пока!");
+                    break;
                 default:
                     System.out.println(mainMenu);
                     break;
             }
 
             System.out.println(mainMenu);
+            choice = scanner.nextLine();
         }
 
 
