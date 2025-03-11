@@ -5,10 +5,10 @@ import java.util.Date;
 
 @Data
 public class Task {
-    private final int id;
-    private String title;
-    private String description;
-    private String status;
+    public final int id;
+    public String title;
+    public String description;
+    public String status;
 
     public Task(int id, String title, String description) {
         this.id = id;

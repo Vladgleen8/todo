@@ -31,40 +31,26 @@ public class ConsoleUI {
         System.out.println(mainMenu);
 
         String choice = scanner.nextLine(); // Читает всю строку
-        int id = 1;
+
         while (true) {
             switch (choice) {
                 case "add":
-                    System.out.println("Введите название задачи: ");
-                    String title = scanner.nextLine();
-                    System.out.println("Введите описание задачи: ");
-                    String description = scanner.nextLine();
-                    taskService.addTask(new Task(id, title, description));
-                    id++;
+                    taskService.addTask();
+                    break;
 
-                    System.out.println("Задача добавлена\n");
-                    break;
                 case "delete":
-                    System.out.println("Введите название задачи: ");
-                    String titleToDelete = scanner.nextLine();
-                    taskService.removeTask(titleToDelete);
+
+                    taskService.removeTask();
                     break;
+
                 case "edit":
-                    System.out.println("Введите название задачи: ");
-                    String titleToEdit = scanner.nextLine();
-                    System.out.println("Какое поле нужно изменить? Заголовок, Описание, Статус");
-                    String fieldToEdit = scanner.nextLine();
-                    if (fieldToEdit.equals("Статус")) {
-                        System.out.println("Введите один из статусов: В работе, Сделано");
-                    } else {
-                        System.out.println("Введите новые данные для поля");
-                    }
-                    String fieldData = scanner.nextLine();
-                    taskService.editTask(titleToEdit, fieldToEdit, fieldData);
+                    taskService.editTask();
                     break;
+
                 case "list":
                     taskService.showAllTasks();
                     break;
+
                 case "sort":
                     System.out.println("Введите название поля для сортировки: ");
                     String sortByField = scanner.nextLine();
@@ -72,11 +58,11 @@ public class ConsoleUI {
                     String sortType = scanner.nextLine();
                     taskService.sortTasks(sortByField, sortType);
                     break;
+
                 case "filter":
-                    System.out.println("Фильтровать по статусу задачи: сделать, в работе (progress), сделано (completed) ");
-                    String filterType = scanner.nextLine();
-                    taskService.filterTasks(filterType);
+                    taskService.filterTasks();
                     break;
+
                 case "exit":
                     System.out.println("Пока!");
                     break;
