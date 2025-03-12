@@ -1,29 +1,32 @@
 package todo.service;
 import lombok.Data;
 import todo.model.Task;
+import todo.model.TaskRepository;
+import todo.model.Utils;
 
 import java.util.*;
 import java.util.stream.Stream;
 
 @Data
 public class TaskService {
-    private List<Task> tasks = new ArrayList<>();
-    int id = 1;
-    Scanner scanner = new Scanner(System.in, "UTF-8");
+    TaskRepository taskRepository = new TaskRepository();
 
+    Scanner scanner = new Scanner(System.in, "UTF-8");
+    enum availableFields {
+        TITLE,
+        DESCRIPTION,
+        STATUS
+    }
     public static final Map<String, String> STATUS_MAP = Map.of(
             "сделать", "todo",
             "в работе", "progress",
             "сделано", "done"
     );
 
-    public static final List<String> FIELDS_LIST = List.of("заголовок", "описание", "статус");
-
-
     public void addTask() {
         System.out.println("Введите название задачи: ");
         String title = scanner.nextLine();
-        boolean titleExist = tasks.stream().anyMatch(task -> task.getTitle().equals(title));
+        boolean titleExist = taskRepository.getTasks().containsKey(title);
 
         if (titleExist) {
             System.out.println("Задача с таким названием существует, введите другое название ");
@@ -33,58 +36,55 @@ public class TaskService {
 
         System.out.println("Введите описание задачи: ");
         String description = scanner.nextLine();
-        tasks.add(new Task(id, title, description));
-        id++;
+
+        taskRepository.addTaskToRepository(title, description);
         System.out.println("Задача добавлена\n");
     }
 
     public void removeTask() {
         System.out.println("Введите название задачи: ");
         String titleToDelete = scanner.nextLine();
-        boolean isDeleted = tasks.removeIf(task -> task.getTitle().equals(titleToDelete));
-        if (!isDeleted) {
+
+        if (!taskRepository.removeTaskFromRepository(titleToDelete)) {
             System.out.println("Задачи с таким названием не существует, введите другое название");
             removeTask();
         }
     }
 
     public void showAllTasks() {
-        tasks.forEach(task -> {
-            System.out.println(task.getTitle() + ": " + task.getDescription() + " - статус: " + task.getStatus() + "\n");
+        taskRepository.getTasks().forEach((title, taskDescription) -> {
+            System.out.println("Задача: " + title + " / Описание: " + taskDescription.getDescription() + " / Статус: " + taskDescription.getStatus());
         });
     }
 
     public void editTask() {
-        System.out.println("Введите название задачи: ");
 
-        // проверяем наличие заголовка
-        String titleData;
+        Map<String, String> dataToEdit = new HashMap<>();
+
+        System.out.println("Введите название задачи: ");
         while (true) {
             String titleToEdit = scanner.nextLine();
-            if (tasks.stream().anyMatch(task -> task.getTitle().equals(titleToEdit))) {
-                titleData = titleToEdit;
+            if (!Utils.isValueExist(taskRepository, titleToEdit, "key")) {
+                System.out.println("Задачи с таким названием не существует, введите другое название ");
+            } else {
+                dataToEdit.put("title", titleToEdit);
                 break;
             }
-            System.out.println("Задачи с таким названием не существует, введите другое название ");
         }
 
-        // проверяем наличие поля
         System.out.println("Какое поле нужно изменить? заголовок, описание, статус");
-        String fieldToEdit;
         while (true) {
-            String inputField = scanner.nextLine();
-            if (FIELDS_LIST.contains(inputField)) {
-                fieldToEdit = inputField;
+            String fieldToEdit = scanner.nextLine();
+            if (!Utils.AvailableFields.isFieldExist(fieldToEdit)) {
+                System.out.println("Такого поля не существует. Какое поле нужно изменить? заголовок, описание, статус");
+            } else {
+                dataToEdit.put("field", fieldToEdit);
                 break;
             }
-            System.out.println("Такого поля не существует. Какое поле нужно изменить? заголовок, описание, статус");
         }
 
-        String fieldData;
-
-        if (fieldToEdit.equals("статус")) {
+        if (dataToEdit.get("field").equals()) {
             System.out.println("Введите один из статусов: сделать, в работе, сделано");
-            fieldData = scanner.nextLine();
 
             while (!STATUS_MAP.containsKey(fieldData)) {
                 System.out.println("Такого статуса не существует. Введите один из статусов: сделать, в работе, сделано");
@@ -98,8 +98,6 @@ public class TaskService {
             System.out.println("Введите новое описание");
             fieldData = scanner.nextLine();
         }
-
-        final String finalFieldData = fieldData;
 
 
 
