@@ -7,10 +7,12 @@ import java.util.Date;
 public class Task {
     public String description;
     public String status;
+    public String title;
 
-    public Task(String description) {
+    public Task(String title, String description) {
+        this.title = title;
         this.description = description;
-        this.status = "Сделать";
+        this.status = "сделать";
     }
 
 }

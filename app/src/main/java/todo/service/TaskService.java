@@ -10,18 +10,57 @@ import java.util.stream.Stream;
 @Data
 public class TaskService {
     TaskRepository taskRepository = new TaskRepository();
-
     Scanner scanner = new Scanner(System.in, "UTF-8");
-    enum availableFields {
-        TITLE,
-        DESCRIPTION,
-        STATUS
+
+    public enum AvailableFields {
+        TITLE("заголовок"),
+        DESCRIPTION("описание"),
+        STATUS("статус");
+
+        private final String value;
+
+        AvailableFields(String value) {
+            this.value = value;
+        }
+
+        public String getValue() {
+            return value;
+        }
+
+        public static boolean isFieldExist(String text) {
+            for (AvailableFields field : AvailableFields.values()) {
+                if (field.getValue().equalsIgnoreCase(text)) {
+                    return true;
+                }
+            }
+            return false;
+        }
     }
-    public static final Map<String, String> STATUS_MAP = Map.of(
-            "сделать", "todo",
-            "в работе", "progress",
-            "сделано", "done"
-    );
+
+    public enum TaskStatus {
+        TODO("сделать"),
+        IN_PROGRESS("в работе"),
+        DONE("сделано");
+
+        private final String displayName;
+
+        TaskStatus(String displayName) {
+            this.displayName = displayName;
+        }
+
+        public String getStatus() {
+            return displayName;
+        }
+
+        public static boolean isStatusExist(String text) {
+            for (TaskStatus status : TaskStatus.values()) {
+                if (status.getStatus().equalsIgnoreCase(text)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
 
     public void addTask() {
         System.out.println("Введите название задачи: ");
@@ -64,7 +103,7 @@ public class TaskService {
         System.out.println("Введите название задачи: ");
         while (true) {
             String titleToEdit = scanner.nextLine();
-            if (!Utils.isValueExist(taskRepository, titleToEdit, "key")) {
+            if (!Utils.isKeyExist(taskRepository, titleToEdit)) {
                 System.out.println("Задачи с таким названием не существует, введите другое название ");
             } else {
                 dataToEdit.put("title", titleToEdit);
@@ -75,7 +114,7 @@ public class TaskService {
         System.out.println("Какое поле нужно изменить? заголовок, описание, статус");
         while (true) {
             String fieldToEdit = scanner.nextLine();
-            if (!Utils.AvailableFields.isFieldExist(fieldToEdit)) {
+            if (!AvailableFields.isFieldExist(fieldToEdit)) {
                 System.out.println("Такого поля не существует. Какое поле нужно изменить? заголовок, описание, статус");
             } else {
                 dataToEdit.put("field", fieldToEdit);
@@ -83,14 +122,17 @@ public class TaskService {
             }
         }
 
-        if (dataToEdit.get("field").equals()) {
+        String fieldData = "";
+
+        if (dataToEdit.get("field").equals("статус")) {
             System.out.println("Введите один из статусов: сделать, в работе, сделано");
 
-            while (!STATUS_MAP.containsKey(fieldData)) {
+            fieldData = scanner.nextLine();
+            while (!TaskStatus.isStatusExist(fieldData)) {
                 System.out.println("Такого статуса не существует. Введите один из статусов: сделать, в работе, сделано");
                 fieldData = scanner.nextLine();
             }
-        } else if (fieldToEdit.equals("заголовок")) {
+        } else if (dataToEdit.get("status").equals("заголовок")) {
             System.out.println("Введите новый заголовок");
             fieldData = scanner.nextLine();
             // проверить наличие такого заголовка
@@ -99,45 +141,57 @@ public class TaskService {
             fieldData = scanner.nextLine();
         }
 
+        dataToEdit.put("fieldData", fieldData);
 
-
-        tasks.forEach(task -> {
-            if (task.getTitle().equals(titleData)) {
-                switch (fieldToEdit) {
-                    case "заголовок":
-                        task.setTitle(finalFieldData);
-                        break;
-                    case "описание":
-                        task.setDescription(finalFieldData);
-                        break;
-                    case "статус":
-                        task.setStatus(finalFieldData);
-                        break;
-                }
-            }
-        });
+        taskRepository.editTaskInRepository(dataToEdit);
     }
 
     public void filterTasks() {
         System.out.println("Фильтровать по статусу задачи: сделать, в работе, сделано ");
         String filterType = scanner.nextLine();
 
-        while (!STATUS_MAP.containsKey(filterType)) {
+        while (!TaskStatus.isStatusExist(filterType)) {
             System.out.println("Не возможно ввести такой статус, введите допустимый статус");
         }
-        String status = STATUS_MAP.get(filterType);
-        tasks.forEach(task -> {
-           if (Objects.equals(task.getStatus(), status)) {
-               System.out.println(task.getTitle() + ": " + task.getDescription() + " - статус: " + task.getStatus() + "\n");
-           }
+
+        taskRepository.getTasks().forEach((title, taskDescription) -> {
+            if (taskDescription.getStatus().equals(filterType)) {
+                System.out.println("Задача: " + title + " / Описание: " + taskDescription.getDescription() + " / Статус: " + taskDescription.getStatus());
+            }
         });
-    }
-
-    public void sortTasks(String sortByField, String sortType) {
 
     }
+
+    public void sortTasks() {
+        System.out.println("Сортировать по статусу: сделать, в работе, сделано");
+        String sortType = scanner.nextLine().trim().toLowerCase();
+
+        List<Task> taskList = new ArrayList<>(taskRepository.getTasks().values());
+        List<String> defaultStatusOrder = Arrays.asList("сделать", "в работе", "сделано");
+
+        List<String> sortedStatusOrder = new ArrayList<>(defaultStatusOrder);
+        if (defaultStatusOrder.contains(sortType)) {
+            sortedStatusOrder.remove(sortType);
+            sortedStatusOrder.add(0, sortType); // Перемещаем выбранный статус в начало
+        } else {
+            System.out.println("Некорректный ввод! Сортировка будет по умолчанию (сделать → в работе → сделано).");
+        }
+
+        Comparator<Task> comparator = Comparator.comparing(task -> sortedStatusOrder.indexOf(task.getStatus()));
+
+        taskList.sort(comparator);
+
+        taskList.forEach(task -> System.out.println(
+                "Задача: " + task.getTitle() +
+                        " / Описание: " + task.getDescription() +
+                        " / Статус: " + task.getStatus()
+        ));
+    }
+
 
     public void exit() {
-
+        System.out.println("Программа завершена. До свидания!");
+        scanner.close();
+        System.exit(0);
     }
 }

@@ -2,41 +2,40 @@ package todo.model;
 
 import lombok.Data;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Data
 public class TaskRepository {
     private Map<String, Task> tasks = new HashMap<>();
 
-    public boolean addTaskToRepository(String title, String description) {
-        tasks.put(title, new Task(description));
+    public void addTaskToRepository(String title, String description) {
+        tasks.put(title, new Task(title, description));
     }
 
     public boolean removeTaskFromRepository(String title) {
         return tasks.remove(title) != null;
     }
 
-    public void editTaskInRepository(Task task) {
+    public void editTaskInRepository(Map<String, String> dataToEdit) {
+        String title = dataToEdit.get("title");
 
+        Task task = tasks.get(title);
 
+        String field = dataToEdit.get("field");
 
-
-        // проверяем наличие поля
-        String fieldToEdit;
-        while (true) {
-            String inputField = scanner.nextLine();
-            if (FIELDS_LIST.contains(inputField)) {
-                fieldToEdit = inputField;
-                break;
-            }
+        if (Objects.equals(field, "заголовок")) {
+            String newTitle = dataToEdit.get("fieldData");
+            tasks.remove(title);  // Удаляем старый ключ
+            tasks.put(newTitle, task); // Добавляем с новым ключом
         }
 
+        if (Objects.equals(field, "описание")) {
+            task.setDescription(dataToEdit.get("fieldData"));
+        }
 
-
-        final String finalFieldData = fieldData;
+        if (Objects.equals(field, "статус")) {
+            task.setStatus(dataToEdit.get("fieldData"));
+        }
     }
 
 

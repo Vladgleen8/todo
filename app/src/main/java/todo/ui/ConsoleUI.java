@@ -2,9 +2,8 @@ package todo.ui;
 
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 
 import lombok.Data;
 import todo.model.Task;
@@ -12,24 +11,28 @@ import todo.service.TaskService;
 
 @Data
 public class ConsoleUI {
-    public static void main(String[] args) throws UnsupportedEncodingException {
+    private final TaskService taskService;
+    private final Scanner scanner;
+    private final Map<String, String> commandsWithDescription;
 
-        TaskService taskService = new TaskService();
+    public ConsoleUI() {
+        System.setOut(new PrintStream(System.out, true, StandardCharsets.UTF_8));
 
-        System.setOut(new PrintStream(System.out, true, "UTF-8"));
-        Scanner scanner = new Scanner(System.in, "UTF-8"); // Читаем с клавиатуры
+        this.taskService = new TaskService();
+        this.scanner = new Scanner(System.in, StandardCharsets.UTF_8);
+        this.commandsWithDescription = new HashMap<>();
 
-        String mainMenu = "Доступные команды:\n" +
-                "add - добавить задачу\n"+
-                "delete - удалить задачу\n"+
-                "edit - редактировать задачу\n" +
-                "list - вывести список всех задач\n" +
-                "filter - офтильтровать задачи по статусу\n" +
-                "sort - отсоритровать задачи\n" +
-                "exit - выйти\n" +
-                "Введите команду для выполнения: ";
-        System.out.println(mainMenu);
+        commandsWithDescription.put("add", "добавить задачу");
+        commandsWithDescription.put("delete", "удалить задачу");
+        commandsWithDescription.put("edit", "редактировать задачу");
+        commandsWithDescription.put("list", "вывести список всех задач");
+        commandsWithDescription.put("filter", "отфильтровать задачи по статусу");
+        commandsWithDescription.put("sort", "отсортировать задачи");
+        commandsWithDescription.put("exit", "выйти");
+    }
 
+    public void start() {
+        printCommands();
         String choice = scanner.nextLine(); // Читает всю строку
 
         while (true) {
@@ -52,11 +55,8 @@ public class ConsoleUI {
                     break;
 
                 case "sort":
-                    System.out.println("Введите название поля для сортировки: ");
-                    String sortByField = scanner.nextLine();
-                    System.out.println("Сортировать по возрастанию (ASC) или по убыванию (DESC): ");
-                    String sortType = scanner.nextLine();
-                    taskService.sortTasks(sortByField, sortType);
+
+                    taskService.sortTasks();
                     break;
 
                 case "filter":
@@ -65,16 +65,25 @@ public class ConsoleUI {
 
                 case "exit":
                     System.out.println("Пока!");
-                    break;
+                    return;
+
                 default:
-                    System.out.println(mainMenu);
+                    System.out.println("Неизвестная команда!");
+                    printCommands();
                     break;
             }
 
-            System.out.println(mainMenu);
+            printCommands();
             choice = scanner.nextLine();
         }
 
+    }
 
+    private void printCommands() {
+        System.out.println("Доступные команды: ");
+        commandsWithDescription.forEach((command, description) ->
+                System.out.println(command + " - " + description)
+        );
+        System.out.println("Введите команду для выполнения: ");
     }
 }
