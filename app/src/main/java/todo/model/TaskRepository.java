@@ -7,35 +7,33 @@ import java.util.*;
 @Data
 public class TaskRepository {
     private Map<String, Task> tasks = new HashMap<>();
+    private long idCounter;
 
     public void addTaskToRepository(String title, String description) {
-        tasks.put(title, new Task(title, description));
+        String newId = Utils.createID(idCounter);
+        idCounter++;
+        tasks.put(newId, new Task(title, description, newId, new Date()));
     }
 
-    public boolean removeTaskFromRepository(String title) {
-        return tasks.remove(title) != null;
+    public boolean removeTaskFromRepository(String id) {
+        return tasks.remove(id) != null;
     }
 
-    public void editTaskInRepository(Map<String, String> dataToEdit) {
-        String title = dataToEdit.get("title");
+    public boolean editTaskInRepository(String id, String fieldToEdit, String value) {
+        Task task = tasks.get(id);
 
-        Task task = tasks.get(title);
-
-        String field = dataToEdit.get("field");
-
-        if (Objects.equals(field, "заголовок")) {
-            String newTitle = dataToEdit.get("fieldData");
-            tasks.remove(title);  // Удаляем старый ключ
-            tasks.put(newTitle, task); // Добавляем с новым ключом
+        switch (fieldToEdit) {
+            case "title":
+                task.setTitle(value);
+                break;
+            case "description":
+                task.setDescription(value);
+                break;
+            case "status":
+                task.setStatus(value);
+                break;
         }
-
-        if (Objects.equals(field, "описание")) {
-            task.setDescription(dataToEdit.get("fieldData"));
-        }
-
-        if (Objects.equals(field, "статус")) {
-            task.setStatus(dataToEdit.get("fieldData"));
-        }
+        return true;
     }
 
 

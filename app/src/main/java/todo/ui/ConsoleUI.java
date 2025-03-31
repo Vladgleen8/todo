@@ -7,6 +7,7 @@ import java.util.*;
 
 import lombok.Data;
 import todo.model.Task;
+import todo.model.Utils;
 import todo.service.TaskService;
 
 @Data
@@ -31,6 +32,12 @@ public class ConsoleUI {
         commandsWithDescription.put("exit", "выйти");
     }
 
+    public void showTasks(List<Task> tasks) {
+        tasks.forEach(task -> {
+            System.out.println("id = " + task.getId() + "title = " + task.getTitle() + "description = " + task.getDescription() + "status = " + task.getStatus() + "createdOn = " + task.getCreatedOn());
+        });
+    }
+
     public void start() {
         printCommands();
         String choice = scanner.nextLine(); // Читает всю строку
@@ -38,33 +45,67 @@ public class ConsoleUI {
         while (true) {
             switch (choice) {
                 case "add":
-                    taskService.addTask();
+                    System.out.println("Введите название задачи: ");
+                    String title = scanner.nextLine();
+                    System.out.println("Введите описание задачи: ");
+                    String description = scanner.nextLine();
+                    taskService.addTask(title, description);
+                    System.out.println("Задача добавлена\n");
+
                     break;
 
                 case "delete":
-
-                    taskService.removeTask();
+                    showTasks(taskService.getTasks());
+                    System.out.println("Введите Id задачи для удаления: ");
+                    String idToDelete = scanner.nextLine();
+                    if (taskService.removeTask(idToDelete)) {
+                        System.out.println("Успешно удалено");
+                    } else {
+                        System.out.println("Не удалось удалить");
+                    }
                     break;
 
                 case "edit":
-                    taskService.editTask();
+                    showTasks(taskService.getTasks());
+                    System.out.println("Введите Id задачи: ");
+                    String idToEdit = scanner.nextLine();
+
+                    System.out.println("Какое поле хотите изменить?: ");
+                    String fieldToEdit = scanner.nextLine();
+
+                    System.out.println("Введите новое значение поля: ");
+                    String newValue = scanner.nextLine();
+
+                    if (!taskService.editTask(idToEdit, fieldToEdit, newValue)) {
+                        System.out.println("Не получилось изменить данные");
+                    }
                     break;
 
                 case "list":
-                    taskService.showAllTasks();
+                    showTasks(taskService.getTasks());
                     break;
 
                 case "sort":
-
                     taskService.sortTasks();
                     break;
 
                 case "filter":
-                    taskService.filterTasks();
+                    showTasks(taskService.getTasks());
+                    System.out.println("Введите поле для фильтрации: status / createdOn ");
+                    String fieldName = scanner.nextLine();
+                    System.out.println("Введите значние поля: ");
+                    String fieldValue = scanner.nextLine();
+
+                    List<Task> filteredTasks = taskService.getTasks(fieldName, fieldValue);
+                    if (filteredTasks.isEmpty()) {
+                        System.out.println("Такие задачи отсутсвуют");
+                    } else {
+                        showTasks(filteredTasks);
+                    }
                     break;
 
                 case "exit":
-                    System.out.println("Пока!");
+                    exit();
                     return;
 
                 default:
@@ -77,6 +118,12 @@ public class ConsoleUI {
             choice = scanner.nextLine();
         }
 
+    }
+
+    public void exit() {
+        System.out.println("Программа завершена. До свидания!");
+        scanner.close();
+        System.exit(0);
     }
 
     private void printCommands() {
