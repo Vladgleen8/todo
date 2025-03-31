@@ -34,7 +34,7 @@ public class ConsoleUI {
 
     public void showTasks(List<Task> tasks) {
         tasks.forEach(task -> {
-            System.out.println("id = " + task.getId() + "title = " + task.getTitle() + "description = " + task.getDescription() + "status = " + task.getStatus() + "createdOn = " + task.getCreatedOn());
+            System.out.println("id = " + task.getId() + " title = " + task.getTitle() + " description = " + task.getDescription() + " status = " + task.getStatus() + " createdOn = " + Utils.getDateString(task.getCreatedOn()));
         });
     }
 
@@ -86,7 +86,21 @@ public class ConsoleUI {
                     break;
 
                 case "sort":
-                    taskService.sortTasks();
+                    showTasks(taskService.getTasks());
+                    System.out.println("Введите поле для сортировки: ");
+                    String fieldToSort = scanner.nextLine();
+
+                    String sortingCriteria = null;
+
+                    if (Objects.equals(fieldToSort, "title") || Objects.equals(fieldToSort, "description")) {
+                            System.out.println("Как сортировать: ASC (в алфавитном порядке) / DESC (в обратном порядке)?");
+                            sortingCriteria = scanner.nextLine();
+                    } else if (Objects.equals(fieldToSort, "createdOn")) {
+                            System.out.println("Как сортировать: ASC (от старых к новым) / DESC (от новых к старым)?");
+                            sortingCriteria = scanner.nextLine();
+                    }
+
+                    showTasks(taskService.sortTasks(fieldToSort, sortingCriteria));
                     break;
 
                 case "filter":

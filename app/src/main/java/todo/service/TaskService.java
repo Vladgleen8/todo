@@ -26,7 +26,7 @@ public class TaskService {
 
     public boolean editTask(String id, String fieldToEdit, String value) {
 
-        if (Utils.isKeyExist(taskRepository, id) || !Utils.hasField(fieldToEdit)) {
+        if (!Utils.isKeyExist(taskRepository, id) || !Utils.hasField(fieldToEdit)) {
             return false;
         }
 
@@ -68,32 +68,53 @@ public class TaskService {
         return new ArrayList<>(taskRepository.getTasks().values());
     }
 
-    public void sortTasks() {
-        System.out.println("Сортировать по статусу: сделать, в работе, сделано");
-        String sortType = scanner.nextLine().trim().toLowerCase();
+    public ArrayList<Task> sortTasks(String fieldName, String sortingCriteria) {
+        ArrayList<Task> taskList = new ArrayList<>(taskRepository.getTasks().values());
+        Comparator<Task> comparator = null;
 
-        List<Task> taskList = new ArrayList<>(taskRepository.getTasks().values());
-        List<String> defaultStatusOrder = Arrays.asList("сделать", "в работе", "сделано");
-
-        List<String> sortedStatusOrder = new ArrayList<>(defaultStatusOrder);
-        if (defaultStatusOrder.contains(sortType)) {
-            sortedStatusOrder.remove(sortType);
-            sortedStatusOrder.add(0, sortType); // Перемещаем выбранный статус в начало
-        } else {
-            System.out.println("Некорректный ввод! Сортировка будет по умолчанию (сделать → в работе → сделано).");
+        switch (fieldName) {
+            case "id":
+                comparator = Comparator.comparing(Task::getId);
+                break;
+            case "title":
+                comparator = Comparator.comparing(task -> task.getTitle().toLowerCase());
+                break;
+            case "description":
+                comparator = Comparator.comparing(task -> task.getDescription().toLowerCase());
+                break;
+            case "status":
+                if (!Utils.isValidStatus(sortingCriteria)) {
+                    System.out.println("Некорректное поле для сортировки");
+                    return taskList; // Возвращаем список без изменений
+                }
+                comparator = Comparator.comparing(task -> getStatusOrder(task.getStatus()));
+                break;
+            case "createdOn":
+                comparator = Comparator.comparing(Task::getCreatedOn);
+                break;
+            default:
+                System.out.println("Некорректное поле для сортировки");
+                return taskList; // Возвращаем список без изменений
         }
 
-        Comparator<Task> comparator = Comparator.comparing(task -> sortedStatusOrder.indexOf(task.getStatus()));
+        if ("desc".equalsIgnoreCase(sortingCriteria)) {
+            comparator = comparator.reversed();
+        }
 
         taskList.sort(comparator);
 
-        taskList.forEach(task -> System.out.println(
-                "Задача: " + task.getTitle() +
-                        " / Описание: " + task.getDescription() +
-                        " / Статус: " + task.getStatus()
-        ));
+
+        return taskList;
     }
 
 
+    private int getStatusOrder(String status) {
+        switch (status.toLowerCase()) {
+            case "to do": return 1;
+            case "in progress": return 2;
+            case "done": return 3;
+            default: return -1;
+        }
+    }
 
 }

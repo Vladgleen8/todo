@@ -2,6 +2,7 @@ package todo.model;
 
 import lombok.Data;
 
+import java.time.LocalDate;
 import java.util.*;
 
 @Data
@@ -12,7 +13,7 @@ public class TaskRepository {
     public void addTaskToRepository(String title, String description) {
         String newId = Utils.createID(idCounter);
         idCounter++;
-        tasks.put(newId, new Task(title, description, newId, new Date()));
+        tasks.put(newId, new Task(title, description, newId, LocalDate.now()));
     }
 
     public boolean removeTaskFromRepository(String id) {

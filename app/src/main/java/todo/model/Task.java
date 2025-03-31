@@ -1,6 +1,7 @@
 package todo.model;
 import lombok.Data;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 @Data
@@ -9,9 +10,9 @@ public class Task {
     public String description;
     public String status;
     public String title;
-    public Date createdOn;
+    public LocalDate createdOn;
 
-    public Task(String title, String description, String id, Date createdOn) {
+    public Task(String title, String description, String id, LocalDate createdOn) {
         this.title = title;
         this.description = description;
         this.status = "to do";
