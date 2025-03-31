@@ -31,6 +31,10 @@ public class TaskRepository {
                 task.setDescription(value);
                 break;
             case "status":
+                if (!Utils.isValidStatus(value)) {
+                    System.out.println("Некорректное поле для сортировки");
+                    return false;
+                }
                 task.setStatus(value);
                 break;
         }
