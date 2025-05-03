@@ -1,16 +1,13 @@
 package todo.service;
 import lombok.Data;
+import todo.model.InvalidInputException;
 import todo.model.Status;
 import todo.model.Task;
 import todo.model.TaskRepository;
-import todo.model.Utils;
 
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Data
 public class TaskService {
@@ -25,25 +22,28 @@ public class TaskService {
     }
 
 
-    public boolean editTask(String id, String fieldToEdit, String value) {
+    public boolean editTask(String id, String fieldToEdit, String value) throws InvalidInputException {
 
-        if (!Utils.isKeyExist(taskRepository, id) || !Utils.hasField(fieldToEdit)) {
-            return false;
+        if (!taskRepository.isKeyExist(id)) {
+            throw new InvalidInputException("Задача не существует");
         }
 
         return taskRepository.editTaskInRepository(id, fieldToEdit, value);
     }
 
-    public List<Task> getTasks(String fieldName, String fieldValue) {
+    public List<Task> getTasks(String fieldName, String fieldValue) throws InvalidInputException {
         List<Task> filteredTasks = new ArrayList<>();
 
-        if (!Utils.isKeyExist(taskRepository, fieldName)) {
-            return filteredTasks;
+        if (!taskRepository.isKeyExist(fieldName)) {
+            throw new InvalidInputException("Поле не существует");
         }
+
         switch (fieldName) {
             case "status":
+                Status status = Status.fromString(fieldValue);
+
                 taskRepository.getTasks().forEach((id, task) -> {
-                    if (task.getStatus().equals(Status.fromString(fieldValue))) {
+                    if (task.getStatus().equals(status)) {
                         filteredTasks.add(task);
                     }
                 });
@@ -69,7 +69,7 @@ public class TaskService {
         return new ArrayList<>(taskRepository.getTasks().values());
     }
 
-    public ArrayList<Task> sortTasks(String fieldName, String sortingCriteria) {
+    public ArrayList<Task> sortTasks(String fieldName, String sortingCriteria) throws InvalidInputException {
         ArrayList<Task> taskList = new ArrayList<>(taskRepository.getTasks().values());
         Comparator<Task> comparator = null;
 
@@ -84,18 +84,21 @@ public class TaskService {
                 comparator = Comparator.comparing(task -> task.getDescription().toLowerCase());
                 break;
             case "status":
-                if (!Utils.isValidStatus(sortingCriteria)) {
-                    System.out.println("Некорректное поле для сортировки");
+                try {
+                    Status status = Status.fromString(sortingCriteria); // пытаемся преобразовать
+                    comparator = Comparator.comparing(task -> getStatusOrder(task.getStatus()));
+                } catch (InvalidInputException ex) {
+                    System.out.println("Некорректное поле для сортировки: " + ex.getMessage());
                     return taskList; // Возвращаем список без изменений
+
                 }
-                comparator = Comparator.comparing(task -> getStatusOrder(task.getStatus()));
                 break;
             case "createdOn":
                 comparator = Comparator.comparing(Task::getCreatedOn);
                 break;
             default:
-                System.out.println("Некорректное поле для сортировки");
-                return taskList; // Возвращаем список без изменений
+                throw new InvalidInputException("Некорректное поле для сортировки");
+//                return taskList; // Возвращаем список без изменений
         }
 
         if ("desc".equalsIgnoreCase(sortingCriteria)) {
@@ -109,13 +112,12 @@ public class TaskService {
     }
 
 
-    private int getStatusOrder(String status) {
-        switch (status.toLowerCase()) {
-            case "to do": return 1;
-            case "in progress": return 2;
-            case "done": return 3;
-            default: return -1;
-        }
+    private int getStatusOrder(Status status) {
+        return switch (status) {
+            case Status.TO_DO -> 1;
+            case Status.IN_PROGRESS -> 2;
+            case Status.DONE -> 3;
+        };
     }
 
 }

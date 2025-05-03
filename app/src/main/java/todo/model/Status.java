@@ -12,12 +12,12 @@ public enum Status {
         return status;
     }
 
-    public static Status fromString(String text) {
+    public static Status fromString(String text) throws InvalidInputException{
         for (Status s : Status.values()) {
             if (s.getStatus().equalsIgnoreCase(text)) {
                 return s;
             }
         }
-        throw new IllegalArgumentException("Unknown status: " + text);
+        throw new InvalidInputException("Unknown status: " + text);
     }
 }

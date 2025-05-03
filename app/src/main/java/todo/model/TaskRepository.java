@@ -11,7 +11,7 @@ public class TaskRepository {
     private long idCounter;
 
     public void addTaskToRepository(String title, String description) {
-        String newId = Utils.createID(idCounter);
+        String newId = String.valueOf(idCounter);
         idCounter++;
         tasks.put(newId, new Task(title, description, newId, LocalDate.now()));
     }
@@ -31,14 +31,25 @@ public class TaskRepository {
                 task.setDescription(value);
                 break;
             case "status":
-                if (!Utils.isValidStatus(value)) {
-                    System.out.println("Некорректное поле для сортировки");
+                try {
+                    Status status = Status.fromString(value); // пытаемся преобразовать
+                    task.setStatus(status);
+                } catch (InvalidInputException ex) {
+                    System.out.println("Некорректное поле для сортировки: " + ex.getMessage());
                     return false;
                 }
-                task.setStatus(value);
                 break;
         }
         return true;
+    }
+
+    public boolean isKeyExist(String value) {
+        if (this.getTasks().isEmpty()) {
+            return false;
+        }
+
+        return this.getTasks().containsKey(value);
+
     }
 
 

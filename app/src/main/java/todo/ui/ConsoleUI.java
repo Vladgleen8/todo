@@ -1,40 +1,43 @@
 package todo.ui;
 
 import java.io.PrintStream;
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import lombok.Data;
+import todo.model.Command;
+import todo.model.InvalidInputException;
 import todo.model.Task;
-import todo.model.Utils;
 import todo.service.TaskService;
 
 @Data
 public class ConsoleUI {
     private final TaskService taskService;
     private final Scanner scanner;
-    private final Map<String, String> commandsWithDescription;
+    private final Map<Command, String> commandDescriptions = Map.of(
+            Command.ADD, "добавить задачу",
+            Command.DELETE, "удалить задачу",
+            Command.EDIT, "редактировать задачу",
+            Command.LIST, "вывести список всех задач",
+            Command.FILTER, "отфильтровать задачи по статусу",
+            Command.SORT, "отсортировать задачи",
+            Command.EXIT, "выйти"
+    );
+
 
     public ConsoleUI() {
         System.setOut(new PrintStream(System.out, true, StandardCharsets.UTF_8));
 
         this.taskService = new TaskService();
         this.scanner = new Scanner(System.in, StandardCharsets.UTF_8);
-        this.commandsWithDescription = new HashMap<>();
-
-        commandsWithDescription.put("add", "добавить задачу");
-        commandsWithDescription.put("delete", "удалить задачу");
-        commandsWithDescription.put("edit", "редактировать задачу");
-        commandsWithDescription.put("list", "вывести список всех задач");
-        commandsWithDescription.put("filter", "отфильтровать задачи по статусу");
-        commandsWithDescription.put("sort", "отсортировать задачи");
-        commandsWithDescription.put("exit", "выйти");
     }
 
     public void showTasks(List<Task> tasks) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+
         tasks.forEach(task -> {
-            System.out.println("id = " + task.getId() + " title = " + task.getTitle() + " description = " + task.getDescription() + " status = " + task.getStatus() + " createdOn = " + Utils.getDateString(task.getCreatedOn()));
+            System.out.println("id = " + task.getId() + " title = " + task.getTitle() + " description = " + task.getDescription() + " status = " + task.getStatus() + " createdOn = " + task.getCreatedOn().format(formatter));
         });
     }
 
@@ -76,9 +79,12 @@ public class ConsoleUI {
                     System.out.println("Введите новое значение поля: ");
                     String newValue = scanner.nextLine();
 
-                    if (!taskService.editTask(idToEdit, fieldToEdit, newValue)) {
-                        System.out.println("Не получилось изменить данные");
+                    try {
+                        taskService.editTask(idToEdit, fieldToEdit, newValue);
+                    } catch (InvalidInputException e) {
+                        System.out.println(e.getMessage());
                     }
+
                     break;
 
                 case "list":
@@ -100,22 +106,28 @@ public class ConsoleUI {
                             sortingCriteria = scanner.nextLine();
                     }
 
-                    showTasks(taskService.sortTasks(fieldToSort, sortingCriteria));
+                    try {
+                        showTasks(taskService.sortTasks(fieldToSort, sortingCriteria));
+                    } catch (InvalidInputException e) {
+                        System.out.println(e.getMessage());
+                        showTasks(taskService.getTasks());
+                    }
                     break;
 
                 case "filter":
                     showTasks(taskService.getTasks());
                     System.out.println("Введите поле для фильтрации: status / createdOn ");
                     String fieldName = scanner.nextLine();
-                    System.out.println("Введите значние поля: ");
+                    System.out.println("Введите значение поля: ");
                     String fieldValue = scanner.nextLine();
 
-                    List<Task> filteredTasks = taskService.getTasks(fieldName, fieldValue);
-                    if (filteredTasks.isEmpty()) {
-                        System.out.println("Такие задачи отсутсвуют");
-                    } else {
+                    try {
+                        List<Task> filteredTasks = taskService.getTasks(fieldName, fieldValue);
                         showTasks(filteredTasks);
+                    } catch (InvalidInputException e) {
+                        System.out.println(e.getMessage());
                     }
+
                     break;
 
                 case "exit":
@@ -142,8 +154,8 @@ public class ConsoleUI {
 
     private void printCommands() {
         System.out.println("Доступные команды: ");
-        commandsWithDescription.forEach((command, description) ->
-                System.out.println(command + " - " + description)
+        commandDescriptions.forEach((command, description) ->
+                System.out.println(command.getCommand() + " - " + description)
         );
         System.out.println("Введите команду для выполнения: ");
     }
