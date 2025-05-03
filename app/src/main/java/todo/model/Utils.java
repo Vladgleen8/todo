@@ -2,6 +2,8 @@ package todo.model;
 
 import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
 public class Utils {
@@ -24,14 +26,20 @@ public class Utils {
         return false; // Такого поля нет
     }
 
+    public static boolean isValidStatus(String status) {
+        return status.equalsIgnoreCase("to do") ||
+                status.equalsIgnoreCase("in progress") ||
+                status.equalsIgnoreCase("done");
+    }
+
 
     public static String createID(long idCounter)
     {
-        return String.valueOf(idCounter++);
+        return String.valueOf(idCounter);
     }
 
-    public static String getDateString(Task task, Date date) {
-        SimpleDateFormat formatter = new SimpleDateFormat("dd.MM.yyyy");
-        formatter.format(task.getCreatedOn());
+    public static String getDateString(LocalDate date) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+        return date.format(formatter);
     }
 }
