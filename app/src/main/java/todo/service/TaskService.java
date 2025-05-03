@@ -1,5 +1,6 @@
 package todo.service;
 import lombok.Data;
+import todo.model.Status;
 import todo.model.Task;
 import todo.model.TaskRepository;
 import todo.model.Utils;
@@ -42,7 +43,7 @@ public class TaskService {
         switch (fieldName) {
             case "status":
                 taskRepository.getTasks().forEach((id, task) -> {
-                    if (task.getStatus().equals(fieldValue)) {
+                    if (task.getStatus().equals(Status.fromString(fieldValue))) {
                         filteredTasks.add(task);
                     }
                 });

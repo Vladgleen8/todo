@@ -30,7 +30,7 @@ public class TaskRepository {
                 task.setDescription(value);
                 break;
             case "status":
-                task.setStatus(value);
+                task.setStatus(Status.fromString(value));
                 break;
         }
         return true;
