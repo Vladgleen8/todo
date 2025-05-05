@@ -20,7 +20,7 @@ public class TaskRepository {
         return tasks.remove(id) != null;
     }
 
-    public boolean editTaskInRepository(String id, String fieldToEdit, String value) {
+    public boolean editTaskInRepository(String id, String fieldToEdit, String value) throws InvalidInputException {
         Task task = tasks.get(id);
 
         switch (fieldToEdit) {
@@ -32,13 +32,14 @@ public class TaskRepository {
                 break;
             case "status":
                 try {
-                    Status status = Status.fromString(value); // пытаемся преобразовать
+                    Status status = Status.fromString(value);
                     task.setStatus(status);
                 } catch (InvalidInputException ex) {
                     System.out.println("Некорректное поле для сортировки: " + ex.getMessage());
                     return false;
                 }
                 break;
+            default: throw new InvalidInputException("Некорректное поля для редактирования");
         }
         return true;
     }

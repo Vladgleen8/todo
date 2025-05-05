@@ -45,103 +45,108 @@ public class ConsoleUI {
         printCommands();
         String choice = scanner.nextLine(); // Читает всю строку
 
-        while (true) {
-            switch (choice) {
-                case "add":
-                    System.out.println("Введите название задачи: ");
-                    String title = scanner.nextLine();
-                    System.out.println("Введите описание задачи: ");
-                    String description = scanner.nextLine();
-                    taskService.addTask(title, description);
-                    System.out.println("Задача добавлена\n");
+        try {
+            while (true) {
+                switch (choice) {
+                    case "add":
+                        System.out.println("Введите название задачи: ");
+                        String title = scanner.nextLine();
+                        System.out.println("Введите описание задачи: ");
+                        String description = scanner.nextLine();
+                        taskService.addTask(title, description);
+                        System.out.println("Задача добавлена\n");
 
-                    break;
+                        break;
 
-                case "delete":
-                    showTasks(taskService.getTasks());
-                    System.out.println("Введите Id задачи для удаления: ");
-                    String idToDelete = scanner.nextLine();
-                    if (taskService.removeTask(idToDelete)) {
-                        System.out.println("Успешно удалено");
-                    } else {
-                        System.out.println("Не удалось удалить");
-                    }
-                    break;
+                    case "delete":
+                        showTasks(taskService.getTasks());
+                        System.out.println("Введите Id задачи для удаления: ");
+                        String idToDelete = scanner.nextLine();
+                        if (taskService.removeTask(idToDelete)) {
+                            System.out.println("Успешно удалено");
+                        } else {
+                            System.out.println("Такая задача не найдена");
+                        }
+                        break;
 
-                case "edit":
-                    showTasks(taskService.getTasks());
-                    System.out.println("Введите Id задачи: ");
-                    String idToEdit = scanner.nextLine();
+                    case "edit":
+                        showTasks(taskService.getTasks());
+                        System.out.println("Введите Id задачи: ");
+                        String idToEdit = scanner.nextLine();
 
-                    System.out.println("Какое поле хотите изменить?: ");
-                    String fieldToEdit = scanner.nextLine();
+                        System.out.println("Какое поле хотите изменить?: ");
+                        String fieldToEdit = scanner.nextLine();
 
-                    System.out.println("Введите новое значение поля: ");
-                    String newValue = scanner.nextLine();
+                        System.out.println("Введите новое значение поля: ");
+                        String newValue = scanner.nextLine();
 
-                    try {
-                        taskService.editTask(idToEdit, fieldToEdit, newValue);
-                    } catch (InvalidInputException e) {
-                        System.out.println(e.getMessage());
-                    }
+                        try {
+                            taskService.editTask(idToEdit, fieldToEdit, newValue);
+                        } catch (InvalidInputException e) {
+                            System.out.println(e.getMessage());
+                        }
 
-                    break;
+                        break;
 
-                case "list":
-                    showTasks(taskService.getTasks());
-                    break;
+                    case "list":
+                        showTasks(taskService.getTasks());
+                        break;
 
-                case "sort":
-                    showTasks(taskService.getTasks());
-                    System.out.println("Введите поле для сортировки: ");
-                    String fieldToSort = scanner.nextLine();
+                    case "sort":
+                        showTasks(taskService.getTasks());
+                        System.out.println("Введите поле для сортировки: ");
+                        String fieldToSort = scanner.nextLine();
 
-                    String sortingCriteria = null;
+                        String sortingCriteria = null;
 
-                    if (Objects.equals(fieldToSort, "title") || Objects.equals(fieldToSort, "description")) {
+                        if (Objects.equals(fieldToSort, "title") || Objects.equals(fieldToSort, "description")) {
                             System.out.println("Как сортировать: ASC (в алфавитном порядке) / DESC (в обратном порядке)?");
                             sortingCriteria = scanner.nextLine();
-                    } else if (Objects.equals(fieldToSort, "createdOn")) {
+                        } else if (Objects.equals(fieldToSort, "createdOn")) {
                             System.out.println("Как сортировать: ASC (от старых к новым) / DESC (от новых к старым)?");
                             sortingCriteria = scanner.nextLine();
-                    }
+                        }
 
-                    try {
-                        showTasks(taskService.sortTasks(fieldToSort, sortingCriteria));
-                    } catch (InvalidInputException e) {
-                        System.out.println(e.getMessage());
+                        try {
+                            showTasks(taskService.sortTasks(fieldToSort, sortingCriteria));
+                        } catch (InvalidInputException e) {
+                            System.out.println(e.getMessage());
+                            showTasks(taskService.getTasks());
+                        }
+                        break;
+
+                    case "filter":
                         showTasks(taskService.getTasks());
-                    }
-                    break;
+                        System.out.println("Введите поле для фильтрации: status / createdOn ");
+                        String fieldName = scanner.nextLine();
+                        System.out.println("Введите значение поля: ");
+                        String fieldValue = scanner.nextLine();
 
-                case "filter":
-                    showTasks(taskService.getTasks());
-                    System.out.println("Введите поле для фильтрации: status / createdOn ");
-                    String fieldName = scanner.nextLine();
-                    System.out.println("Введите значение поля: ");
-                    String fieldValue = scanner.nextLine();
+                        try {
+                            List<Task> filteredTasks = taskService.getTasks(fieldName, fieldValue);
+                            showTasks(filteredTasks);
+                        } catch (InvalidInputException e) {
+                            System.out.println(e.getMessage());
+                        }
 
-                    try {
-                        List<Task> filteredTasks = taskService.getTasks(fieldName, fieldValue);
-                        showTasks(filteredTasks);
-                    } catch (InvalidInputException e) {
-                        System.out.println(e.getMessage());
-                    }
+                        break;
 
-                    break;
+                    case "exit":
+                        exit();
+                        return;
 
-                case "exit":
-                    exit();
-                    return;
+                    default:
+                        System.out.println("Неизвестная команда!");
+                        break;
+                }
 
-                default:
-                    System.out.println("Неизвестная команда!");
-                    printCommands();
-                    break;
+                printCommands();
+                choice = scanner.nextLine();
             }
-
-            printCommands();
-            choice = scanner.nextLine();
+        } catch (NoSuchElementException e) {
+            System.out.println("Ввод завершён, выход из программы.");
+        } catch (Exception e) {
+            System.out.println("Неизвестная ошибка: " + e.getMessage());
         }
 
     }

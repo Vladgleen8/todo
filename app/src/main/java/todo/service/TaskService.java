@@ -98,7 +98,6 @@ public class TaskService {
                 break;
             default:
                 throw new InvalidInputException("Некорректное поле для сортировки");
-//                return taskList; // Возвращаем список без изменений
         }
 
         if ("desc".equalsIgnoreCase(sortingCriteria)) {
