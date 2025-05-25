@@ -3,10 +3,9 @@ package todoTest.model;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import todo.model.InvalidInputException;
-import todo.model.Status;
-import todo.model.Task;
-import todo.model.TaskRepository;
+import todo.exceptions.InvalidInputException;
+import todo.enums.Status;
+import todo.repository.TaskRepository;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -54,15 +53,19 @@ public class TaskRepositoryTest {
         @Test
         void testRemoveExistingTask() {
             repository.addTaskToRepository("Title1", "Desc1");
-            boolean removed = repository.removeTaskFromRepository("0");
-            assertTrue(removed);
+
+            InvalidInputException exception = assertThrows(InvalidInputException.class,
+                    () -> repository.removeTaskFromRepository("0"));
+            assertEquals("Task not found", exception.getMessage());
+
             assertFalse(repository.getTasks().containsKey("0"));
         }
 
         @Test
         void testRemoveNonExistingTask() {
-            boolean removed = repository.removeTaskFromRepository("999");
-            assertFalse(removed);
+            InvalidInputException exception = assertThrows(InvalidInputException.class,
+                    () -> repository.removeTaskFromRepository("999"));
+            assertEquals("Task not found", exception.getMessage());
         }
     }
 

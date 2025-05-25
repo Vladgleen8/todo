@@ -1,4 +1,6 @@
-package todo.model;
+package todo.enums;
+
+import todo.exceptions.InvalidInputException;
 
 public enum Command {
     ADD("add"),

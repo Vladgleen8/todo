@@ -1,9 +1,9 @@
 package todo.service;
 import lombok.Data;
-import todo.model.InvalidInputException;
-import todo.model.Status;
+import todo.exceptions.InvalidInputException;
+import todo.enums.Status;
 import todo.model.Task;
-import todo.model.TaskRepository;
+import todo.repository.TaskRepository;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -17,8 +17,12 @@ public class TaskService {
         taskRepository.addTaskToRepository(title, description);
     }
 
-    public boolean removeTask(String id) {
-        return taskRepository.removeTaskFromRepository(id);
+    public void removeTask(String id) throws InvalidInputException {
+        try {
+            taskRepository.removeTaskFromRepository(id);
+        } catch (InvalidInputException e) {
+            throw new InvalidInputException(e.getMessage());
+        }
     }
 
 
@@ -74,30 +78,12 @@ public class TaskService {
         Comparator<Task> comparator = null;
 
         switch (fieldName) {
-            case "id":
-                comparator = Comparator.comparing(Task::getId);
-                break;
-            case "title":
-                comparator = Comparator.comparing(task -> task.getTitle().toLowerCase());
-                break;
-            case "description":
-                comparator = Comparator.comparing(task -> task.getDescription().toLowerCase());
-                break;
-            case "status":
-                try {
-                    Status status = Status.fromString(sortingCriteria); // пытаемся преобразовать
-                    comparator = Comparator.comparing(task -> getStatusOrder(task.getStatus()));
-                } catch (InvalidInputException ex) {
-                    System.out.println("Некорректное поле для сортировки: " + ex.getMessage());
-                    return taskList; // Возвращаем список без изменений
-
-                }
-                break;
-            case "createdOn":
-                comparator = Comparator.comparing(Task::getCreatedOn);
-                break;
-            default:
-                throw new InvalidInputException("Некорректное поле для сортировки");
+            case "id" -> comparator = Comparator.comparing(Task::getId);
+            case "title" -> comparator = Comparator.comparing(task -> task.getTitle().toLowerCase());
+            case "description" -> comparator = Comparator.comparing(task -> task.getDescription().toLowerCase());
+            case "status" -> comparator = Comparator.comparing(Task::getStatus); 
+            case "createdOn" -> comparator = Comparator.comparing(Task::getCreatedOn);
+            default -> throw new InvalidInputException("Некорректное поле для сортировки: " + fieldName);
         }
 
         if ("desc".equalsIgnoreCase(sortingCriteria)) {
@@ -108,15 +94,6 @@ public class TaskService {
 
 
         return taskList;
-    }
-
-
-    private int getStatusOrder(Status status) {
-        return switch (status) {
-            case Status.TO_DO -> 1;
-            case Status.IN_PROGRESS -> 2;
-            case Status.DONE -> 3;
-        };
     }
 
 }
